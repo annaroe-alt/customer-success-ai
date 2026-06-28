@@ -163,6 +163,8 @@ def route_all(
                 continue
 
         stats.ok()
+        # Escalations require CSM approval before action; all other tracks are auto-approved.
+        status = "pending_review" if track == config.TRACK_ESCALATE else "approved"
         decisions.append(RoutingDecision(
             account_id=ctx.account_id,
             account_name=ctx.account_name,
@@ -170,6 +172,7 @@ def route_all(
             reason=reason,
             owner=ctx.account.csm_owner,
             next_step=next_step,
+            status=status,
         ))
 
     rows = [
@@ -177,13 +180,34 @@ def route_all(
             "account_id": d.account_id,
             "account_name": d.account_name,
             "track": d.track,
+            "status": d.status,
             "reason": d.reason,
             "owner": d.owner,
             "next_step": d.next_step,
+            "reviewed_by": d.reviewed_by,
+            "reviewed_at": d.reviewed_at,
+            "denial_reason": d.denial_reason,
         }
         for d in decisions
     ]
     save_csv_from_dicts(rows, "routing_decisions.csv")
+
+    # Write a focused queue file containing only escalations awaiting review.
+    pending = [d for d in decisions if d.status == "pending_review"]
+    if pending:
+        pending_rows = [
+            {
+                "account_id": d.account_id,
+                "account_name": d.account_name,
+                "owner": d.owner,
+                "reason": d.reason,
+                "next_step": d.next_step,
+            }
+            for d in pending
+        ]
+        save_csv_from_dicts(pending_rows, "escalations_pending.csv")
+        logger.info(f"{len(pending)} escalation(s) written to escalations_pending.csv — awaiting CSM approval.")
+
     stats.summary(logger)
 
     track_counts = {}

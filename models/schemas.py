@@ -158,3 +158,8 @@ class RoutingDecision:
     reason: str
     owner: str
     next_step: str
+    # Approval workflow — only meaningful when track == "Escalate"
+    status: str = "approved"          # "approved" | "denied" | "pending_review"
+    reviewed_by: str = ""
+    reviewed_at: str = ""
+    denial_reason: str = ""

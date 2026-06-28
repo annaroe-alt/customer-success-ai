@@ -129,7 +129,17 @@ def plan_interventions(
     priority_results: list[PriorityResult],
     quality_results: list[QualityReviewResult],
     triage_results: list[dict],
+    approved_escalation_ids: set[str] | None = None,
 ) -> list[InterventionPlan]:
+    """
+    Generate intervention plans for at-risk accounts.
+
+    Args:
+        approved_escalation_ids: Account IDs whose escalation was approved by a CSM
+            in Stage 8. When provided, accounts routed to Escalate are only planned
+            if they appear in this set — denied/pending escalations are skipped.
+            Pass None (default) to plan all eligible accounts regardless of routing.
+    """
     stats = StageStats("06_intervention_planner")
     priority_map = {p.account_id: p for p in priority_results}
     failed_map: dict[str, list[QualityReviewResult]] = {}
@@ -148,6 +158,20 @@ def plan_interventions(
 
         if not _needs_intervention(ctx, priority, failed):
             logger.info(f"{ctx.account_id}: no intervention needed.")
+            continue
+
+        # If this is a Critical/High account whose only trigger is tier (not a quality
+        # failure), and escalation approval is being tracked, skip accounts whose
+        # escalation was not approved — the CSM chose not to act on them yet.
+        if (
+            approved_escalation_ids is not None
+            and priority and priority.tier in INTERVENTION_TIERS
+            and not failed  # quality failures always warrant a plan regardless of routing
+            and ctx.account_id not in approved_escalation_ids
+        ):
+            logger.info(
+                f"{ctx.account_id}: escalation not approved — intervention plan on hold."
+            )
             continue
 
         logger.info(

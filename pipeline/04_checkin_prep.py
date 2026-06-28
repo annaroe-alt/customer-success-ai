@@ -1,16 +1,31 @@
 """
 Stage 4 — Check-in Prep
 For each scheduled check-in, generates a structured CSM briefing via Claude.
+Now includes open follow-up items from prior check-ins for continuity.
 Writes checkin_briefs.json to outputs/.
 """
-from models.schemas import AccountContext, CheckIn, CheckInBrief, PriorityResult
+from models.schemas import AccountContext, CheckIn, CheckInBrief, PriorityResult, FollowUpItem
 import config
 from pipeline.utils import get_logger, call_claude, save_json, load_prompt, StageStats
 
 logger = get_logger("04_checkin_prep")
 
 
-def _build_context_block(ctx: AccountContext, priority: PriorityResult | None) -> str:
+def _format_open_items(items: list[FollowUpItem]) -> str:
+    if not items:
+        return "  None."
+    lines = []
+    for it in items:
+        tag = "⚠ OVERDUE" if it.status == "overdue" else "open"
+        lines.append(f"  [{tag}] {it.description} (owner: {it.owner}, due: {it.due_date})")
+    return "\n".join(lines)
+
+
+def _build_context_block(
+    ctx: AccountContext,
+    priority: PriorityResult | None,
+    open_items: list[FollowUpItem],
+) -> str:
     a = ctx.account
 
     snapshots_text = ""
@@ -39,15 +54,21 @@ def _build_context_block(ctx: AccountContext, priority: PriorityResult | None) -
         f"Notes: {a.notes}\n\n"
         f"USAGE HISTORY:\n{snapshots_text or '  No data.'}\n"
         f"OPEN TICKETS:\n{tickets_text or '  None.'}\n"
-        f"LAST CALL:\n{call_text}\n"
+        f"LAST CALL:\n{call_text}\n\n"
+        f"OPEN FOLLOW-UP ITEMS FROM PRIOR CHECK-INS:\n{_format_open_items(open_items)}\n"
     )
 
 
-def generate_brief(ctx: AccountContext, checkin: CheckIn, priority: PriorityResult | None) -> CheckInBrief:
+def generate_brief(
+    ctx: AccountContext,
+    checkin: CheckIn,
+    priority: PriorityResult | None,
+    open_items: list[FollowUpItem] | None = None,
+) -> CheckInBrief:
     try:
         template = load_prompt("checkin_brief")
         prompt = template.format(
-            context_block=_build_context_block(ctx, priority),
+            context_block=_build_context_block(ctx, priority, open_items or []),
             checkin_type=checkin.checkin_type,
             scheduled_date=checkin.scheduled_date,
             checkin_priority=checkin.priority,
@@ -71,9 +92,17 @@ def generate_brief(ctx: AccountContext, checkin: CheckIn, priority: PriorityResu
 def prep_all_checkins(
     contexts: list[AccountContext],
     priority_results: list[PriorityResult],
+    open_items_by_account: dict[str, list[FollowUpItem]] | None = None,
 ) -> list[CheckInBrief]:
+    """
+    Args:
+        open_items_by_account: Map of account_id → open follow-up items from
+            Stage 11 (follow-up tracker). When provided, each brief includes
+            outstanding commitments from prior check-ins for continuity.
+    """
     stats = StageStats("04_checkin_prep")
     priority_map = {p.account_id: p for p in priority_results}
+    items_map = open_items_by_account or {}
 
     accounts_with_checkins = [c for c in contexts if c.checkin]
     if not accounts_with_checkins:
@@ -83,13 +112,16 @@ def prep_all_checkins(
     for ctx in contexts:
         if ctx.checkin is None:
             continue
+        open_items = items_map.get(ctx.account_id, [])
+        overdue_count = sum(1 for it in open_items if it.status == "overdue")
         logger.info(
             f"Preparing brief for {ctx.account_id} ({ctx.account_name}) — "
             f"{ctx.checkin.checkin_type} on {ctx.checkin.scheduled_date} "
-            f"[priority: {ctx.checkin.priority}]"
+            f"[priority: {ctx.checkin.priority}] "
+            f"[{len(open_items)} open item(s), {overdue_count} overdue]"
         )
         priority = priority_map.get(ctx.account_id)
-        brief = generate_brief(ctx, ctx.checkin, priority)
+        brief = generate_brief(ctx, ctx.checkin, priority, open_items)
 
         if brief.brief_text.startswith("Error generating brief"):
             stats.fail(ctx.account_id, brief.brief_text)
@@ -126,7 +158,6 @@ if __name__ == "__main__":
     import importlib
     _s1 = importlib.import_module("pipeline.01_account_review")
     _s2 = importlib.import_module("pipeline.02_prioritization")
-    # Shadow the module-level call_claude so the mock takes effect in this module's namespace
     call_claude = lambda *a, **kw: (  # noqa: E731
         "## Situation Summary\nTest.\n## Open Risks\n- None.\n"
         "## Committed Follow-ups\nNone.\n## Recommended Talking Points\n- Test.\n"

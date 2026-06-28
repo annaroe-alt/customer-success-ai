@@ -19,6 +19,7 @@ _s5  = _stage("05_quality_review")
 _s7  = _stage("07_router")
 _s8  = _stage("08_approval_gate")
 _s6  = _stage("06_intervention_planner")
+_s11 = _stage("11_followup_tracker")
 
 validate_inputs        = _s0.validate_inputs
 build_account_contexts = _s1.build_account_contexts
@@ -29,6 +30,7 @@ review_all_outputs     = _s5.review_all_outputs
 route_all              = _s7.route_all
 run_approval_gate      = _s8.run_approval_gate
 plan_interventions     = _s6.plan_interventions
+run_followup_tracker   = _s11.run_followup_tracker
 
 logger = get_logger("main")
 
@@ -92,9 +94,13 @@ def run_pipeline(auto_approve: bool = False) -> None:
         for r in triage_results
     ]
 
-    # Stage 4 — Check-in Prep
+    # Stage 11 — Follow-up Tracker (runs before prep so open items feed into briefs)
+    _banner(11, "Follow-up Tracker")
+    open_items_by_account = run_followup_tracker()
+
+    # Stage 4 — Check-in Prep (receives open items for continuity)
     _banner(4, "Check-in Prep")
-    checkin_briefs = prep_all_checkins(contexts, priority_results)
+    checkin_briefs = prep_all_checkins(contexts, priority_results, open_items_by_account)
 
     # Stage 5 — Quality Review
     _banner(5, "Quality Review")

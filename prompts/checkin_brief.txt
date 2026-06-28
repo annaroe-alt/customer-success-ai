@@ -20,10 +20,12 @@ Two to three sentences on the account's current state and what has changed recen
 Bullet list of active risks or blockers (from tickets, call notes, health signals).
 
 ## Committed Follow-ups
-Any deliverables or promises the CSM owes this customer from prior interactions.
+List every open follow-up item from prior check-ins still outstanding (see OPEN FOLLOW-UP ITEMS
+in the context above). Mark overdue items clearly. If none, write "None outstanding."
 
 ## Recommended Talking Points
 Three to five specific, actionable points for this check-in based on the topics and context.
+Where a talking point closes or advances an open follow-up item, reference it explicitly.
 
 ## Suggested Ask
 One clear ask or outcome the CSM should aim to secure by the end of this call.

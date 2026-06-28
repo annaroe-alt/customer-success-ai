@@ -151,6 +151,34 @@ class InterventionPlan:
 
 
 @dataclass
+class CheckInIntake:
+    """Structured post-call record captured after a check-in completes."""
+    intake_id: str
+    checkin_id: str
+    account_id: str
+    call_date: str
+    topics_covered: str
+    decisions_made: str
+    follow_ups_committed: str   # pipe-separated list of items
+    risks_updated: str
+    customer_sentiment: str     # positive / neutral / negative
+    csm_notes: str
+
+
+@dataclass
+class FollowUpItem:
+    """A single tracked commitment extracted from a post-call intake."""
+    item_id: str
+    account_id: str
+    source_checkin_id: str
+    description: str
+    owner: str
+    due_date: str
+    status: str                 # "open" | "completed" | "overdue"
+    completed_date: str = ""
+
+
+@dataclass
 class RoutingDecision:
     account_id: str
     account_name: str

@@ -11,7 +11,6 @@ from pipeline.utils import get_logger, call_claude, save_csv_from_dicts, load_pr
 logger = get_logger("07_router")
 
 ESCALATE_TIERS = {config.TIER_CRITICAL}
-FOLLOW_UP_TIERS = {config.TIER_HIGH, config.TIER_MEDIUM}
 
 # Keywords in ticket summaries / call notes that force escalation
 ESCALATION_KEYWORDS = [

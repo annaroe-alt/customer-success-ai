@@ -93,6 +93,7 @@ def generate_plan(
     failed_outputs: list[QualityReviewResult],
     triage_flags: list[dict],
 ) -> InterventionPlan:
+    plan_text = ""  # ensure always bound before try/except
     try:
         template = load_prompt("intervention")
         prompt = template.format(

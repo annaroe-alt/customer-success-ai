@@ -57,6 +57,8 @@ def usage_trend_score(trend: str) -> float:
 
 
 def ticket_score(count: int, severity: str) -> float:
+    # Use the full 30-day CRM ticket count rather than only the tickets present in
+    # the CSV excerpt, so high-volume accounts aren't under-scored.
     base = min(count * 2, 12)
     severity_bonus = {"high": 8, "medium": 4, "low": 0}.get(severity.lower(), 0)
     return base + severity_bonus
@@ -79,7 +81,7 @@ def compute_score(ctx: AccountContext) -> tuple[float, int, int]:
     days = days_until(ctx.account.renewal_date)
     drop = ctx.account.previous_health_score - ctx.account.current_health_score
 
-    # Determine worst ticket severity for this account
+    # Determine worst ticket severity among the CSV tickets for this account
     severities = [t.severity for t in ctx.tickets]
     worst = "low"
     for sev in ["high", "medium", "low"]:
@@ -87,11 +89,15 @@ def compute_score(ctx: AccountContext) -> tuple[float, int, int]:
             worst = sev
             break
 
+    # Use support_ticket_count_30d (full CRM count) rather than len(ctx.tickets)
+    # (CSV excerpt) so high-volume accounts aren't systematically under-scored.
+    ticket_count = max(ctx.account.support_ticket_count_30d, len(ctx.tickets))
+
     score = (
         renewal_score(days)
         + health_drop_score(drop)
         + usage_trend_score(ctx.account.product_usage_trend)
-        + ticket_score(len(ctx.tickets), worst)
+        + ticket_score(ticket_count, worst)
         + nps_score_component(ctx.account.nps_score)
         + expansion_discount(ctx.account.expansion_signal)
     )
@@ -106,7 +112,11 @@ def score_to_tier(score: float) -> str:
 
 
 def is_borderline(score: float) -> bool:
+    # Skip the zero-floor sentinel — a score of 0-5 is unambiguously Monitor,
+    # not a case where Claude's judgment adds value.
     for threshold, _ in TIER_BOUNDARIES:
+        if threshold == 0:
+            continue
         if abs(score - threshold) <= BORDERLINE_MARGIN:
             return True
     return False

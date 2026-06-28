@@ -5,8 +5,6 @@ recommended action. Also detects accounts present in tickets but absent
 from the scheduled check-in list (gap accounts).
 Writes triage_results.json to outputs/.
 """
-import json
-
 from models.schemas import AccountContext, SupportTicket, TriageResult
 from pipeline.utils import get_logger, call_claude, save_json, load_prompt
 
@@ -104,7 +102,6 @@ def _parse_triage_response(ticket: SupportTicket, ctx: AccountContext, response:
 
 
 def triage_all(contexts: list[AccountContext]) -> list[TriageResult]:
-    ctx_map = {c.account_id: c for c in contexts}
     results = []
 
     for ctx in contexts:

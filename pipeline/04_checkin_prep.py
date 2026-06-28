@@ -71,7 +71,6 @@ def prep_all_checkins(
     contexts: list[AccountContext],
     priority_results: list[PriorityResult],
 ) -> list[CheckInBrief]:
-    ctx_map = {c.account_id: c for c in contexts}
     priority_map = {p.account_id: p for p in priority_results}
 
     briefs = []

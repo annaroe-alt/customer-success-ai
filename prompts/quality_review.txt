@@ -1,0 +1,26 @@
+You are a senior CSM reviewing a junior team member's draft output.
+Evaluate the draft against each quality standard listed below.
+Be specific about why each standard passes or fails — reference the actual text.
+
+ACCOUNT CONTEXT:
+{account_snapshot}
+
+OUTPUT BEING REVIEWED:
+Type: {output_type}
+Intended customer action: {intended_action}
+Draft text:
+"{draft_text}"
+
+QUALITY STANDARDS TO EVALUATE ({standard_ids}):
+{standards_block}
+
+For each standard, respond on one line in this format:
+<STANDARD_ID>: PASS — <brief reason>
+or
+<STANDARD_ID>: FAIL — <specific problem with the draft>
+
+After all standards, provide a rewrite if any standard failed:
+REWRITE: <improved version of the draft that fixes all failures>
+
+If all standards passed, write:
+REWRITE: None needed.

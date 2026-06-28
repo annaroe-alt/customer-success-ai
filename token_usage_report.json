@@ -1,0 +1,371 @@
+{
+  "sample_run_total_cost": 0.633986,
+  "annual_budget": 50000.0,
+  "summary_by_stage": {
+    "1_account_monitoring": {
+      "model": "claude-haiku-4-5-20251001",
+      "runs": 5,
+      "total_input_tokens": 4079,
+      "total_output_tokens": 7690,
+      "total_cost": 0.042529000000000004
+    },
+    "2_prioritization": {
+      "model": "claude-haiku-4-5-20251001",
+      "runs": 1,
+      "total_input_tokens": 1193,
+      "total_output_tokens": 1754,
+      "total_cost": 0.009963
+    },
+    "3_inbound_triage": {
+      "model": "claude-haiku-4-5-20251001",
+      "runs": 5,
+      "total_input_tokens": 4224,
+      "total_output_tokens": 7323,
+      "total_cost": 0.040839
+    },
+    "8_memory_retrieval": {
+      "model": "claude-haiku-4-5-20251001",
+      "runs": 5,
+      "total_input_tokens": 4419,
+      "total_output_tokens": 3123,
+      "total_cost": 0.020034000000000003
+    },
+    "4_checkin_support": {
+      "model": "claude-sonnet-4-6",
+      "runs": 4,
+      "total_input_tokens": 12,
+      "total_output_tokens": 2708,
+      "total_cost": 0.040656000000000005
+    },
+    "5_quality_review": {
+      "model": "claude-sonnet-4-6",
+      "runs": 2,
+      "total_input_tokens": 6,
+      "total_output_tokens": 2475,
+      "total_cost": 0.037142999999999995
+    },
+    "6_targeted_interventions": {
+      "model": "claude-opus-4-8",
+      "runs": 3,
+      "total_input_tokens": 7968,
+      "total_output_tokens": 6249,
+      "total_cost": 0.196065
+    },
+    "7_escalation": {
+      "model": "claude-opus-4-8",
+      "runs": 2,
+      "total_input_tokens": 5312,
+      "total_output_tokens": 6264,
+      "total_cost": 0.18316
+    },
+    "9_evaluation": {
+      "model": "claude-sonnet-4-6",
+      "runs": 3,
+      "total_input_tokens": 9,
+      "total_output_tokens": 4238,
+      "total_cost": 0.063597
+    }
+  },
+  "records": [
+    {
+      "stage": "1_account_monitoring",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 0,
+      "input_tokens": 811,
+      "output_tokens": 972,
+      "input_cost": 0.000811,
+      "output_cost": 0.00486,
+      "total_cost": 0.005671
+    },
+    {
+      "stage": "1_account_monitoring",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 1,
+      "input_tokens": 816,
+      "output_tokens": 2685,
+      "input_cost": 0.000816,
+      "output_cost": 0.013425,
+      "total_cost": 0.014241
+    },
+    {
+      "stage": "1_account_monitoring",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 2,
+      "input_tokens": 817,
+      "output_tokens": 1521,
+      "input_cost": 0.000817,
+      "output_cost": 0.007605,
+      "total_cost": 0.008421999999999999
+    },
+    {
+      "stage": "1_account_monitoring",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 3,
+      "input_tokens": 797,
+      "output_tokens": 1465,
+      "input_cost": 0.000797,
+      "output_cost": 0.007325,
+      "total_cost": 0.008122
+    },
+    {
+      "stage": "1_account_monitoring",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 4,
+      "input_tokens": 838,
+      "output_tokens": 1047,
+      "input_cost": 0.000838,
+      "output_cost": 0.005235,
+      "total_cost": 0.006073
+    },
+    {
+      "stage": "2_prioritization",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 0,
+      "input_tokens": 1193,
+      "output_tokens": 1754,
+      "input_cost": 0.001193,
+      "output_cost": 0.00877,
+      "total_cost": 0.009963
+    },
+    {
+      "stage": "3_inbound_triage",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 0,
+      "input_tokens": 864,
+      "output_tokens": 1184,
+      "input_cost": 0.000864,
+      "output_cost": 0.00592,
+      "total_cost": 0.006784
+    },
+    {
+      "stage": "3_inbound_triage",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 1,
+      "input_tokens": 843,
+      "output_tokens": 883,
+      "input_cost": 0.000843,
+      "output_cost": 0.004415,
+      "total_cost": 0.005258
+    },
+    {
+      "stage": "3_inbound_triage",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 2,
+      "input_tokens": 840,
+      "output_tokens": 2772,
+      "input_cost": 0.00084,
+      "output_cost": 0.01386,
+      "total_cost": 0.014700000000000001
+    },
+    {
+      "stage": "3_inbound_triage",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 3,
+      "input_tokens": 837,
+      "output_tokens": 791,
+      "input_cost": 0.000837,
+      "output_cost": 0.003955,
+      "total_cost": 0.004792
+    },
+    {
+      "stage": "3_inbound_triage",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 4,
+      "input_tokens": 840,
+      "output_tokens": 1693,
+      "input_cost": 0.00084,
+      "output_cost": 0.008465,
+      "total_cost": 0.009305
+    },
+    {
+      "stage": "8_memory_retrieval",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 0,
+      "input_tokens": 879,
+      "output_tokens": 602,
+      "input_cost": 0.000879,
+      "output_cost": 0.00301,
+      "total_cost": 0.003889
+    },
+    {
+      "stage": "8_memory_retrieval",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 1,
+      "input_tokens": 887,
+      "output_tokens": 497,
+      "input_cost": 0.000887,
+      "output_cost": 0.0024850000000000002,
+      "total_cost": 0.003372
+    },
+    {
+      "stage": "8_memory_retrieval",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 2,
+      "input_tokens": 885,
+      "output_tokens": 623,
+      "input_cost": 0.000885,
+      "output_cost": 0.0031149999999999997,
+      "total_cost": 0.004
+    },
+    {
+      "stage": "8_memory_retrieval",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 3,
+      "input_tokens": 887,
+      "output_tokens": 790,
+      "input_cost": 0.000887,
+      "output_cost": 0.00395,
+      "total_cost": 0.004837
+    },
+    {
+      "stage": "8_memory_retrieval",
+      "model": "claude-haiku-4-5-20251001",
+      "run_index": 4,
+      "input_tokens": 881,
+      "output_tokens": 611,
+      "input_cost": 0.000881,
+      "output_cost": 0.003055,
+      "total_cost": 0.003936
+    },
+    {
+      "stage": "4_checkin_support",
+      "model": "claude-sonnet-4-6",
+      "run_index": 0,
+      "input_tokens": 3,
+      "output_tokens": 624,
+      "input_cost": 9e-06,
+      "output_cost": 0.00936,
+      "total_cost": 0.009369
+    },
+    {
+      "stage": "4_checkin_support",
+      "model": "claude-sonnet-4-6",
+      "run_index": 1,
+      "input_tokens": 3,
+      "output_tokens": 814,
+      "input_cost": 9e-06,
+      "output_cost": 0.01221,
+      "total_cost": 0.012219
+    },
+    {
+      "stage": "4_checkin_support",
+      "model": "claude-sonnet-4-6",
+      "run_index": 2,
+      "input_tokens": 3,
+      "output_tokens": 539,
+      "input_cost": 9e-06,
+      "output_cost": 0.008085,
+      "total_cost": 0.008094
+    },
+    {
+      "stage": "4_checkin_support",
+      "model": "claude-sonnet-4-6",
+      "run_index": 3,
+      "input_tokens": 3,
+      "output_tokens": 731,
+      "input_cost": 9e-06,
+      "output_cost": 0.010964999999999999,
+      "total_cost": 0.010974
+    },
+    {
+      "stage": "5_quality_review",
+      "model": "claude-sonnet-4-6",
+      "run_index": 0,
+      "input_tokens": 3,
+      "output_tokens": 1344,
+      "input_cost": 9e-06,
+      "output_cost": 0.020159999999999997,
+      "total_cost": 0.020168999999999996
+    },
+    {
+      "stage": "5_quality_review",
+      "model": "claude-sonnet-4-6",
+      "run_index": 1,
+      "input_tokens": 3,
+      "output_tokens": 1131,
+      "input_cost": 9e-06,
+      "output_cost": 0.016965,
+      "total_cost": 0.016974
+    },
+    {
+      "stage": "6_targeted_interventions",
+      "model": "claude-opus-4-8",
+      "run_index": 0,
+      "input_tokens": 2656,
+      "output_tokens": 1885,
+      "input_cost": 0.01328,
+      "output_cost": 0.047125,
+      "total_cost": 0.060405
+    },
+    {
+      "stage": "6_targeted_interventions",
+      "model": "claude-opus-4-8",
+      "run_index": 1,
+      "input_tokens": 2656,
+      "output_tokens": 2129,
+      "input_cost": 0.01328,
+      "output_cost": 0.053224999999999995,
+      "total_cost": 0.066505
+    },
+    {
+      "stage": "6_targeted_interventions",
+      "model": "claude-opus-4-8",
+      "run_index": 2,
+      "input_tokens": 2656,
+      "output_tokens": 2235,
+      "input_cost": 0.01328,
+      "output_cost": 0.055875,
+      "total_cost": 0.069155
+    },
+    {
+      "stage": "7_escalation",
+      "model": "claude-opus-4-8",
+      "run_index": 0,
+      "input_tokens": 2656,
+      "output_tokens": 3311,
+      "input_cost": 0.01328,
+      "output_cost": 0.082775,
+      "total_cost": 0.096055
+    },
+    {
+      "stage": "7_escalation",
+      "model": "claude-opus-4-8",
+      "run_index": 1,
+      "input_tokens": 2656,
+      "output_tokens": 2953,
+      "input_cost": 0.01328,
+      "output_cost": 0.073825,
+      "total_cost": 0.087105
+    },
+    {
+      "stage": "9_evaluation",
+      "model": "claude-sonnet-4-6",
+      "run_index": 0,
+      "input_tokens": 3,
+      "output_tokens": 2640,
+      "input_cost": 9e-06,
+      "output_cost": 0.039599999999999996,
+      "total_cost": 0.039609
+    },
+    {
+      "stage": "9_evaluation",
+      "model": "claude-sonnet-4-6",
+      "run_index": 1,
+      "input_tokens": 3,
+      "output_tokens": 770,
+      "input_cost": 9e-06,
+      "output_cost": 0.01155,
+      "total_cost": 0.011559
+    },
+    {
+      "stage": "9_evaluation",
+      "model": "claude-sonnet-4-6",
+      "run_index": 2,
+      "input_tokens": 3,
+      "output_tokens": 828,
+      "input_cost": 9e-06,
+      "output_cost": 0.012419999999999999,
+      "total_cost": 0.012428999999999999
+    }
+  ]
+}

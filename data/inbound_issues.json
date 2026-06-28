@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TICKET-1001",
+    "account_id": "ACC-005",
+    "company": "Northstar Financial",
+    "subject": "URGENT: Data sync failure causing compliance reporting errors",
+    "body": "Our nightly data sync has been failing for 3 consecutive nights. This is directly impacting our regulatory compliance reports due to the SEC next week. We have escalated internally to our CTO and need immediate resolution. Previous ticket #998 was marked resolved but the issue has recurred. This is unacceptable and we are exploring our options if this is not resolved in 24 hours.",
+    "submitted_at": "2026-06-27T08:14:00Z",
+    "channel": "email",
+    "account_mrr": 31000
+  },
+  {
+    "id": "TICKET-1002",
+    "account_id": "ACC-003",
+    "company": "Meridian Healthcare",
+    "subject": "HIPAA audit log export producing incomplete records",
+    "body": "When we run the HIPAA audit log export for date ranges longer than 30 days, the export cuts off at exactly 500 records even when there are more. Our compliance team needs complete records for an upcoming audit. Can you confirm whether there is a known limitation and provide a workaround?",
+    "submitted_at": "2026-06-27T09:30:00Z",
+    "channel": "portal",
+    "account_mrr": 22000
+  },
+  {
+    "id": "TICKET-1003",
+    "account_id": "ACC-004",
+    "company": "Coastal Retail Group",
+    "subject": "Question about mobile app API rate limits",
+    "body": "Hi, we are planning to build an integration between your API and our POS system. Can you tell me what the rate limits are for the mobile API and whether we need to upgrade our plan for higher throughput? We expect around 2,000 API calls per hour during peak retail hours.",
+    "submitted_at": "2026-06-27T10:05:00Z",
+    "channel": "email",
+    "account_mrr": 5800
+  },
+  {
+    "id": "TICKET-1004",
+    "account_id": "ACC-001",
+    "company": "Apex Logistics",
+    "subject": "Dashboard loading slowly — 15-20 second load times",
+    "body": "Over the past two weeks our main dashboard has been taking 15-20 seconds to load. This has become a daily complaint from our operations team and is impacting productivity. We have tried different browsers and cleared cache — the issue persists. Please advise.",
+    "submitted_at": "2026-06-27T11:20:00Z",
+    "channel": "email",
+    "account_mrr": 12500
+  },
+  {
+    "id": "TICKET-1005",
+    "account_id": "ACC-002",
+    "company": "Brightfield Education",
+    "subject": "Request: Add bulk student import via CSV",
+    "body": "We are onboarding a new school district with 4,000 students next month and the current manual import process will not scale. We would love a bulk CSV import feature. Is this on the roadmap? If not, can we discuss a custom implementation? Happy to be a beta user.",
+    "submitted_at": "2026-06-27T13:45:00Z",
+    "channel": "portal",
+    "account_mrr": 8200
+  }
+]

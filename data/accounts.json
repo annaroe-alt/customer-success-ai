@@ -1,0 +1,112 @@
+[
+  {
+    "id": "ACC-001",
+    "company": "Apex Logistics",
+    "csm": "Sarah Chen",
+    "mrr": 12500,
+    "health_score": 42,
+    "days_since_login": 18,
+    "open_tickets": 3,
+    "account_age_months": 24,
+    "usage_trend_30d": [85,82,79,75,70,68,65,60,58,55,52,48,45,42,40,38,35,33,30,28,25,22,20,18,15,13,10,8,5,3],
+    "recent_interactions": [
+      {"date": "2026-06-10", "type": "email", "note": "Complained about dashboard slowness"},
+      {"date": "2026-05-28", "type": "call", "note": "Renewal discussion pushed to Q3"},
+      {"date": "2026-05-15", "type": "ticket", "note": "Data export feature request"}
+    ],
+    "renewal_date": "2026-09-01",
+    "industry": "Logistics",
+    "stakeholders": [
+      {"name": "Mark Torres", "title": "VP Operations", "sentiment": "negative"},
+      {"name": "Priya Singh", "title": "IT Manager", "sentiment": "neutral"}
+    ]
+  },
+  {
+    "id": "ACC-002",
+    "company": "Brightfield Education",
+    "csm": "James Park",
+    "mrr": 8200,
+    "health_score": 87,
+    "days_since_login": 1,
+    "open_tickets": 0,
+    "account_age_months": 36,
+    "usage_trend_30d": [80,81,83,82,85,86,84,87,88,86,89,90,88,87,91,89,90,92,91,93,90,92,93,94,92,93,95,94,96,95],
+    "recent_interactions": [
+      {"date": "2026-06-20", "type": "call", "note": "Excited about new reporting module"},
+      {"date": "2026-06-05", "type": "email", "note": "Requested case study participation"},
+      {"date": "2026-05-22", "type": "qbr", "note": "Strong QBR — expanded seats by 20%"}
+    ],
+    "renewal_date": "2027-01-01",
+    "industry": "Education",
+    "stakeholders": [
+      {"name": "Lisa Ng", "title": "Director of IT", "sentiment": "positive"},
+      {"name": "Tom Walsh", "title": "CFO", "sentiment": "positive"}
+    ]
+  },
+  {
+    "id": "ACC-003",
+    "company": "Meridian Healthcare",
+    "csm": "Sarah Chen",
+    "mrr": 22000,
+    "health_score": 61,
+    "days_since_login": 7,
+    "open_tickets": 5,
+    "account_age_months": 18,
+    "usage_trend_30d": [75,74,73,72,70,71,69,68,67,65,66,64,63,62,60,61,59,58,57,55,56,54,53,52,50,51,49,48,47,45],
+    "recent_interactions": [
+      {"date": "2026-06-15", "type": "ticket", "note": "HIPAA compliance report error — P2"},
+      {"date": "2026-06-08", "type": "email", "note": "Requested SLA review"},
+      {"date": "2026-05-30", "type": "call", "note": "Budget review — cautious about expansion"}
+    ],
+    "renewal_date": "2026-12-01",
+    "industry": "Healthcare",
+    "stakeholders": [
+      {"name": "Dr. Ana Reyes", "title": "CISO", "sentiment": "neutral"},
+      {"name": "Brian Cole", "title": "VP Finance", "sentiment": "negative"}
+    ]
+  },
+  {
+    "id": "ACC-004",
+    "company": "Coastal Retail Group",
+    "csm": "James Park",
+    "mrr": 5800,
+    "health_score": 78,
+    "days_since_login": 2,
+    "open_tickets": 1,
+    "account_age_months": 12,
+    "usage_trend_30d": [70,72,71,73,74,75,74,76,77,75,78,79,77,80,79,81,80,82,81,83,82,84,83,85,84,86,85,87,86,88],
+    "recent_interactions": [
+      {"date": "2026-06-22", "type": "call", "note": "Asked about mobile app roadmap"},
+      {"date": "2026-06-10", "type": "email", "note": "Happy with new inventory integration"},
+      {"date": "2026-05-25", "type": "ticket", "note": "Minor UI bug — low priority"}
+    ],
+    "renewal_date": "2027-06-01",
+    "industry": "Retail",
+    "stakeholders": [
+      {"name": "Sandra Kim", "title": "COO", "sentiment": "positive"}
+    ]
+  },
+  {
+    "id": "ACC-005",
+    "company": "Northstar Financial",
+    "csm": "Sarah Chen",
+    "mrr": 31000,
+    "health_score": 29,
+    "days_since_login": 31,
+    "open_tickets": 8,
+    "account_age_months": 30,
+    "usage_trend_30d": [90,88,85,83,80,77,75,72,70,67,65,62,60,57,55,52,50,47,45,42,40,37,35,32,30,27,25,22,20,17],
+    "recent_interactions": [
+      {"date": "2026-06-18", "type": "email", "note": "Unresponsive — 3rd follow-up attempt"},
+      {"date": "2026-06-05", "type": "call", "note": "Mentioned evaluating competitor: Salesforce"},
+      {"date": "2026-05-20", "type": "escalation", "note": "Exec escalated — missed SLA on data sync"}
+    ],
+    "renewal_date": "2026-08-01",
+    "industry": "Financial Services",
+    "stakeholders": [
+      {"name": "Michael Grant", "title": "CTO", "sentiment": "negative"},
+      {"name": "Karen Liu", "title": "VP Technology", "sentiment": "negative"},
+      {"name": "David Ross", "title": "CEO", "sentiment": "unknown"}
+    ]
+  }
+]

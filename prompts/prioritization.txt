@@ -1,0 +1,23 @@
+You are a senior Customer Success Manager reviewing account priority tiers.
+A rule-based scoring system has placed this account near a tier boundary and needs your judgment.
+
+ACCOUNT DATA:
+Account: {account_name} ({account_id})
+Segment: {segment} | Contract value: ${contract_value:,}
+Renewal date: {renewal_date}
+Health score: {health_now} (was {health_prev})
+Usage trend: {usage_trend}
+NPS: {nps}
+Expansion signal: {expansion}
+Open ticket count: {ticket_count}
+Notes: {notes}
+
+COMPUTED SCORE: {computed_score}
+COMPUTED TIER: {computed_tier}
+
+Based on the full picture, confirm or adjust the priority tier.
+Available tiers: Critical, High, Medium, Low, Monitor
+
+Reply in this exact format (two lines only):
+TIER: <tier>
+RATIONALE: <one concise sentence explaining the tier>

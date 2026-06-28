@@ -94,3 +94,65 @@ def save_csv_from_dicts(rows: list[dict], filename: str) -> None:
     import pandas as pd
     config.OUTPUTS_DIR.mkdir(exist_ok=True)
     pd.DataFrame(rows).to_csv(config.OUTPUTS_DIR / filename, index=False)
+
+
+def validate_claude_enum(
+    value: str,
+    valid_values: set[str],
+    field_name: str,
+    fallback: str,
+    logger: logging.Logger,
+    context_id: str = "",
+) -> str:
+    """
+    Case-insensitive membership check for a Claude-parsed enum field.
+    Returns the matched canonical value, or `fallback` with a warning logged.
+    """
+    normalised = value.strip().lower()
+    for v in valid_values:
+        if v.lower() == normalised:
+            return v
+    logger.warning(
+        f"{'[' + context_id + '] ' if context_id else ''}"
+        f"Claude returned unexpected {field_name}={value!r}. "
+        f"Expected one of {valid_values}. Falling back to {fallback!r}."
+    )
+    return fallback
+
+
+class StageStats:
+    """Tracks per-item success/failure counts for a pipeline stage."""
+
+    def __init__(self, stage_name: str) -> None:
+        self.stage_name = stage_name
+        self._success = 0
+        self._failures: list[tuple[str, str]] = []  # (item_id, reason)
+        self._warnings: list[str] = []
+        self._start = time.monotonic()
+
+    def ok(self) -> None:
+        self._success += 1
+
+    def fail(self, item_id: str, reason: str) -> None:
+        self._failures.append((item_id, reason))
+
+    def warn(self, message: str) -> None:
+        self._warnings.append(message)
+
+    def summary(self, logger: logging.Logger) -> None:
+        elapsed = time.monotonic() - self._start
+        total = self._success + len(self._failures)
+        logger.info(
+            f"[{self.stage_name}] complete in {elapsed:.1f}s — "
+            f"{self._success}/{total} succeeded, "
+            f"{len(self._failures)} failed, "
+            f"{len(self._warnings)} warning(s)."
+        )
+        for item_id, reason in self._failures:
+            logger.error(f"  FAIL [{item_id}]: {reason}")
+        for w in self._warnings:
+            logger.warning(f"  WARN: {w}")
+
+    @property
+    def had_failures(self) -> bool:
+        return len(self._failures) > 0

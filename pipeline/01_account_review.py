@@ -147,6 +147,9 @@ def load_quality_standards() -> dict[str, QualityStandard]:
 
 
 def build_account_contexts() -> tuple[list[AccountContext], dict[str, QualityStandard]]:
+    from pipeline.utils import StageStats
+    stats = StageStats("01_account_review")
+
     accounts = load_accounts()
     usage = load_usage_events()
     tickets = load_tickets()
@@ -154,6 +157,9 @@ def build_account_contexts() -> tuple[list[AccountContext], dict[str, QualitySta
     checkins = load_checkins()
     junior_outputs = load_junior_outputs()
     quality_standards = load_quality_standards()
+
+    if not accounts:
+        raise RuntimeError("accounts.csv loaded 0 accounts — cannot continue.")
 
     contexts = []
     for account_id, account in accounts.items():
@@ -166,6 +172,14 @@ def build_account_contexts() -> tuple[list[AccountContext], dict[str, QualitySta
             junior_outputs=junior_outputs.get(account_id, []),
         )
         contexts.append(ctx)
+
+        if not ctx.usage_snapshots:
+            stats.warn(f"{account_id}: no usage events found")
+        if ctx.call_note is None:
+            stats.warn(f"{account_id}: no call note (may be expected for low-touch accounts)")
+        if ctx.tickets and ctx.checkin is None:
+            stats.warn(f"{account_id}: has open tickets but no scheduled check-in (gap account)")
+        stats.ok()
 
     # Persist a serialisable summary for downstream inspection
     serialised = []
@@ -200,9 +214,11 @@ def build_account_contexts() -> tuple[list[AccountContext], dict[str, QualitySta
         })
 
     save_json(serialised, "account_contexts.json")
+    stats.summary(logger)
     logger.info(f"Built {len(contexts)} AccountContext objects. Saved account_contexts.json.")
     return contexts, quality_standards
 
 
 if __name__ == "__main__":
-    build_account_contexts()
+    ok = build_account_contexts()
+    print(f"Built {len(ok[0])} contexts, {len(ok[1])} quality standards.")

@@ -8,7 +8,7 @@ Writes intervention_plans.json to outputs/.
 from models.schemas import (
     AccountContext, PriorityResult, QualityReviewResult, InterventionPlan,
 )
-from pipeline.utils import get_logger, call_claude, save_json, load_prompt
+from pipeline.utils import get_logger, call_claude, save_json, load_prompt, StageStats
 import config
 
 logger = get_logger("06_intervention_planner")
@@ -115,12 +115,22 @@ def generate_plan(
     )
 
 
+_EXPECTED_PLAN_SECTIONS = [
+    "## Situation Assessment",
+    "## Immediate Actions",
+    "## Communication Plan",
+    "## Success Criteria",
+    "## Escalation Trigger",
+]
+
+
 def plan_interventions(
     contexts: list[AccountContext],
     priority_results: list[PriorityResult],
     quality_results: list[QualityReviewResult],
     triage_results: list[dict],
 ) -> list[InterventionPlan]:
+    stats = StageStats("06_intervention_planner")
     priority_map = {p.account_id: p for p in priority_results}
     failed_map: dict[str, list[QualityReviewResult]] = {}
     for qr in quality_results:
@@ -140,8 +150,21 @@ def plan_interventions(
             logger.info(f"{ctx.account_id}: no intervention needed.")
             continue
 
+        logger.info(
+            f"Planning intervention for {ctx.account_id} ({ctx.account_name}) — "
+            f"tier={priority.tier if priority else 'unknown'}, "
+            f"failed_outputs={len(failed)}"
+        )
         plan = generate_plan(ctx, priority, failed, triage_flags)
         plans.append(plan)
+
+        if plan.plan_text.startswith("Error generating plan"):
+            stats.fail(ctx.account_id, plan.plan_text)
+        else:
+            missing = [s for s in _EXPECTED_PLAN_SECTIONS if s not in plan.plan_text]
+            if missing:
+                stats.warn(f"{ctx.account_id}: plan missing sections {missing}")
+            stats.ok()
 
     serialised = [
         {
@@ -153,5 +176,29 @@ def plan_interventions(
         for p in plans
     ]
     save_json(serialised, "intervention_plans.json")
+    stats.summary(logger)
     logger.info(f"Generated {len(plans)} intervention plans. Saved intervention_plans.json.")
     return plans
+
+
+if __name__ == "__main__":
+    import importlib
+    _s1 = importlib.import_module("pipeline.01_account_review")
+    _s2 = importlib.import_module("pipeline.02_prioritization")
+
+    _MOCK_PLAN = "\n".join([
+        "## Situation Assessment\nTest situation.",
+        "## Immediate Actions\n1. Action one (CSM, this week).",
+        "## Medium-term Actions\n1. Follow up in 30 days.",
+        "## Communication Plan\nEmail the exec sponsor.",
+        "## Output Quality Fixes\nRewrite O001.",
+        "## Success Criteria\n- Metric one.\n- Metric two.",
+        "## Escalation Trigger\nIf SSO not resolved by Friday.",
+    ])
+    # Shadow the module-level call_claude so the mock takes effect in this module's namespace
+    call_claude = lambda *a, **kw: _MOCK_PLAN  # noqa: E731
+
+    contexts, _ = _s1.build_account_contexts()
+    priorities = _s2.prioritize(contexts)
+    plans = plan_interventions(contexts, priorities, [], [])
+    print(f"\nGenerated {len(plans)} intervention plans (Claude mocked).")

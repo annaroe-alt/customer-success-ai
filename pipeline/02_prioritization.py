@@ -8,7 +8,7 @@ from datetime import date, datetime
 
 import config
 from models.schemas import AccountContext, PriorityResult
-from pipeline.utils import get_logger, call_claude, save_csv_from_dicts, load_prompt
+from pipeline.utils import get_logger, call_claude, save_csv_from_dicts, load_prompt, StageStats, validate_claude_enum
 
 logger = get_logger("02_prioritization")
 
@@ -148,7 +148,14 @@ def claude_validate_tier(ctx: AccountContext, score: float, tier: str) -> tuple[
         rationale = response
         for line in lines:
             if line.upper().startswith("TIER:"):
-                validated_tier = line.split(":", 1)[1].strip()
+                raw_tier = line.split(":", 1)[1].strip()
+                valid_tiers = {
+                    config.TIER_CRITICAL, config.TIER_HIGH,
+                    config.TIER_MEDIUM, config.TIER_LOW, config.TIER_MONITOR,
+                }
+                validated_tier = validate_claude_enum(
+                    raw_tier, valid_tiers, "tier", tier, logger, ctx.account_id
+                )
             if line.upper().startswith("RATIONALE:"):
                 rationale = line.split(":", 1)[1].strip()
         return validated_tier, rationale
@@ -158,6 +165,7 @@ def claude_validate_tier(ctx: AccountContext, score: float, tier: str) -> tuple[
 
 
 def prioritize(contexts: list[AccountContext]) -> list[PriorityResult]:
+    stats = StageStats("02_prioritization")
     results = []
     for ctx in contexts:
         score, days, drop = compute_score(ctx)
@@ -179,7 +187,11 @@ def prioritize(contexts: list[AccountContext]) -> list[PriorityResult]:
             health_drop=drop,
         )
         results.append(result)
-        logger.info(f"{ctx.account_id} ({ctx.account_name}): {tier} (score={score:.1f}, days={days})")
+        stats.ok()
+        logger.info(
+            f"{ctx.account_id} ({ctx.account_name}): {tier} "
+            f"(score={score:.1f}, days_to_renewal={days}, health_drop={drop})"
+        )
 
     results.sort(key=lambda r: r.urgency_score, reverse=True)
 
@@ -196,6 +208,7 @@ def prioritize(contexts: list[AccountContext]) -> list[PriorityResult]:
         for r in results
     ]
     save_csv_from_dicts(rows, "priority_rankings.csv")
+    stats.summary(logger)
     logger.info("Saved priority_rankings.csv.")
     return results
 
@@ -204,4 +217,7 @@ if __name__ == "__main__":
     import importlib
     _s1 = importlib.import_module("pipeline.01_account_review")
     contexts, _ = _s1.build_account_contexts()
-    prioritize(contexts)
+    results = prioritize(contexts)
+    print("\nPriority Rankings:")
+    for r in results:
+        print(f"  {r.tier:10s} {r.urgency_score:5.1f}  {r.account_id}  {r.account_name}")

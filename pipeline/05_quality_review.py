@@ -5,7 +5,7 @@ Produces pass/fail per standard plus a rewrite suggestion for failures.
 Writes quality_reviews.json to outputs/.
 """
 from models.schemas import AccountContext, JuniorOutput, QualityStandard, QualityReviewResult
-from pipeline.utils import get_logger, call_claude, save_json, load_prompt
+from pipeline.utils import get_logger, call_claude, save_json, load_prompt, StageStats
 
 logger = get_logger("05_quality_review")
 
@@ -125,14 +125,36 @@ def review_all_outputs(
     contexts: list[AccountContext],
     standards: dict[str, QualityStandard],
 ) -> list[QualityReviewResult]:
+    stats = StageStats("05_quality_review")
     results = []
-    for ctx in contexts:
-        for output in ctx.junior_outputs:
-            logger.info(f"Reviewing {output.output_id} ({output.output_type}) for {ctx.account_id}...")
-            result = review_output(output, ctx, standards)
-            results.append(result)
+
+    all_outputs = [(ctx, o) for ctx in contexts for o in ctx.junior_outputs]
+    if not all_outputs:
+        logger.warning("No junior outputs found — quality review produced no output.")
+
+    for ctx, output in all_outputs:
+        logger.info(
+            f"Reviewing {output.output_id} ({output.output_type}) "
+            f"for {ctx.account_id} against {output.quality_standard_ids}..."
+        )
+        result = review_output(output, ctx, standards)
+        results.append(result)
+
+        unparsed = [
+            sid for sid, v in result.standard_results.items()
+            if v.get("reason") == "Not evaluated in response."
+        ]
+        if unparsed:
+            stats.fail(
+                output.output_id,
+                f"Claude did not evaluate standards: {unparsed}"
+            )
+        elif result.rewrite_suggestion == "Review could not be completed:":
+            stats.fail(output.output_id, "API error during review")
+        else:
             status = "PASSED" if result.overall_passed else "FAILED"
             logger.info(f"  {output.output_id}: {status}")
+            stats.ok()
 
     serialised = [
         {
@@ -146,5 +168,32 @@ def review_all_outputs(
         for r in results
     ]
     save_json(serialised, "quality_reviews.json")
-    logger.info(f"Reviewed {len(results)} outputs. Saved quality_reviews.json.")
+    stats.summary(logger)
+    passed = sum(1 for r in results if r.overall_passed)
+    logger.info(
+        f"Reviewed {len(results)} outputs: {passed} passed, {len(results) - passed} failed. "
+        "Saved quality_reviews.json."
+    )
     return results
+
+
+if __name__ == "__main__":
+    import importlib
+    _s1 = importlib.import_module("pipeline.01_account_review")
+
+    _MOCK_PASS = "\n".join([
+        "QS001: PASS — references account context",
+        "QS002: PASS — provides concrete next steps",
+        "QS003: PASS — risk accurately described",
+        "QS004: PASS — tone is professional",
+        "QS005: PASS — escalation judgment appropriate",
+        "QS006: PASS — carries forward prior commitments",
+        "REWRITE: None needed.",
+    ])
+    # Shadow the module-level call_claude so the mock takes effect in this module's namespace
+    call_claude = lambda *a, **kw: _MOCK_PASS  # noqa: E731
+
+    contexts, standards = _s1.build_account_contexts()
+    results = review_all_outputs(contexts, standards)
+    passed = sum(1 for r in results if r.overall_passed)
+    print(f"\nReviewed {len(results)} outputs: {passed} passed (Claude mocked to PASS all).")

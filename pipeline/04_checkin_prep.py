@@ -4,7 +4,7 @@ For each scheduled check-in, generates a structured CSM briefing via Claude.
 Writes checkin_briefs.json to outputs/.
 """
 from models.schemas import AccountContext, CheckIn, CheckInBrief, PriorityResult
-from pipeline.utils import get_logger, call_claude, save_json, load_prompt
+from pipeline.utils import get_logger, call_claude, save_json, load_prompt, StageStats
 
 logger = get_logger("04_checkin_prep")
 
@@ -71,14 +71,38 @@ def prep_all_checkins(
     contexts: list[AccountContext],
     priority_results: list[PriorityResult],
 ) -> list[CheckInBrief]:
+    stats = StageStats("04_checkin_prep")
     priority_map = {p.account_id: p for p in priority_results}
+
+    accounts_with_checkins = [c for c in contexts if c.checkin]
+    if not accounts_with_checkins:
+        logger.warning("No scheduled check-ins found — check-in prep produced no output.")
 
     briefs = []
     for ctx in contexts:
         if ctx.checkin is None:
             continue
+        logger.info(
+            f"Preparing brief for {ctx.account_id} ({ctx.account_name}) — "
+            f"{ctx.checkin.checkin_type} on {ctx.checkin.scheduled_date} "
+            f"[priority: {ctx.checkin.priority}]"
+        )
         priority = priority_map.get(ctx.account_id)
         brief = generate_brief(ctx, ctx.checkin, priority)
+
+        if brief.brief_text.startswith("Error generating brief"):
+            stats.fail(ctx.account_id, brief.brief_text)
+        else:
+            missing_sections = [
+                h for h in ["## Situation", "## Open Risks", "## Recommended", "## Suggested Ask"]
+                if h not in brief.brief_text
+            ]
+            if missing_sections:
+                stats.warn(
+                    f"{ctx.account_id}: brief may be incomplete — "
+                    f"missing expected sections: {missing_sections}"
+                )
+            stats.ok()
         briefs.append(brief)
 
     serialised = [
@@ -92,5 +116,22 @@ def prep_all_checkins(
         for b in briefs
     ]
     save_json(serialised, "checkin_briefs.json")
+    stats.summary(logger)
     logger.info(f"Generated {len(briefs)} check-in briefs. Saved checkin_briefs.json.")
     return briefs
+
+
+if __name__ == "__main__":
+    import importlib
+    _s1 = importlib.import_module("pipeline.01_account_review")
+    _s2 = importlib.import_module("pipeline.02_prioritization")
+    # Shadow the module-level call_claude so the mock takes effect in this module's namespace
+    call_claude = lambda *a, **kw: (  # noqa: E731
+        "## Situation Summary\nTest.\n## Open Risks\n- None.\n"
+        "## Committed Follow-ups\nNone.\n## Recommended Talking Points\n- Test.\n"
+        "## Suggested Ask\nTest ask."
+    )
+    contexts, _ = _s1.build_account_contexts()
+    priorities = _s2.prioritize(contexts)
+    briefs = prep_all_checkins(contexts, priorities)
+    print(f"\nGenerated {len(briefs)} check-in briefs (Claude mocked).")

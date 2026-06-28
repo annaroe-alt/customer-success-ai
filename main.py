@@ -10,6 +10,7 @@ import config
 from pipeline.utils import get_logger
 
 _stage = lambda name: importlib.import_module(f"pipeline.{name}")
+_s0  = _stage("00_validate_inputs")
 _s1  = _stage("01_account_review")
 _s2  = _stage("02_prioritization")
 _s3  = _stage("03_inbound_triage")
@@ -18,6 +19,7 @@ _s5  = _stage("05_quality_review")
 _s6  = _stage("06_intervention_planner")
 _s7  = _stage("07_router")
 
+validate_inputs        = _s0.validate_inputs
 build_account_contexts = _s1.build_account_contexts
 prioritize             = _s2.prioritize
 triage_all             = _s3.triage_all
@@ -49,6 +51,12 @@ def run_pipeline() -> None:
 
     start = time.time()
     logger.info("Starting Customer Success AI pipeline.")
+
+    # Stage 0 — Input Validation (abort if any CSV is missing or malformed)
+    _banner(0, "Input Validation")
+    if not validate_inputs():
+        logger.error("Input validation failed. Fix the errors above before running the pipeline.")
+        sys.exit(1)
 
     # Stage 1 — Account Review
     _banner(1, "Account Review")
@@ -100,15 +108,21 @@ def run_pipeline() -> None:
     logger.info(f"{'='*60}")
     logger.info(f"  Accounts processed:    {len(contexts)}")
     logger.info(f"  Tickets triaged:       {len(triage_results)}")
+    logger.info(f"    - churn-risk flags:  {sum(1 for r in triage_results if r.churn_risk)}")
+    logger.info(f"    - gap accounts:      {sum(1 for r in triage_results if r.gap_flag)}")
     logger.info(f"  Check-in briefs:       {len(checkin_briefs)}")
     logger.info(f"  Outputs reviewed:      {len(quality_results)}")
+    logger.info(f"    - passed:            {sum(1 for r in quality_results if r.overall_passed)}")
+    logger.info(f"    - failed:            {sum(1 for r in quality_results if not r.overall_passed)}")
     logger.info(f"  Intervention plans:    {len(intervention_plans)}")
     logger.info(f"  Routing decisions:     {len(routing_decisions)}")
+    for track in [config.TRACK_ESCALATE, config.TRACK_FOLLOW_UP, config.TRACK_RESOLVE]:
+        n = sum(1 for d in routing_decisions if d.track == track)
+        logger.info(f"    - {track:12s}:  {n}")
     logger.info(f"  Outputs saved to:      {config.OUTPUTS_DIR}/")
     logger.info(f"  Log file:              {config.LOGS_DIR}/pipeline.log")
     logger.info("")
 
-    # Print routing summary to stdout for quick visibility
     print("\n--- ROUTING SUMMARY ---")
     for d in sorted(routing_decisions, key=lambda x: x.track):
         print(f"  [{d.track:10s}] {d.account_id} — {d.account_name} | {d.next_step[:80]}")

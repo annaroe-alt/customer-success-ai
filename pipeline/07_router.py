@@ -6,7 +6,7 @@ Writes routing_decisions.csv to outputs/.
 """
 import config
 from models.schemas import AccountContext, PriorityResult, RoutingDecision
-from pipeline.utils import get_logger, call_claude, save_csv_from_dicts, load_prompt
+from pipeline.utils import get_logger, call_claude, save_csv_from_dicts, load_prompt, StageStats, validate_claude_enum
 
 logger = get_logger("07_router")
 
@@ -96,24 +96,30 @@ def claude_route(ctx: AccountContext, priority: PriorityResult | None) -> tuple[
     )
     response = call_claude(prompt)
 
+    _VALID_TRACKS = {config.TRACK_RESOLVE, config.TRACK_FOLLOW_UP, config.TRACK_ESCALATE}
     track = config.TRACK_FOLLOW_UP
     reason = ""
     next_step = ""
+    track_found = False
     for line in response.splitlines():
         s = line.strip()
         low = s.lower()
         if low.startswith("track:"):
             raw = s.split(":", 1)[1].strip()
-            if "escalate" in raw.lower():
-                track = config.TRACK_ESCALATE
-            elif "resolve" in raw.lower():
-                track = config.TRACK_RESOLVE
-            else:
-                track = config.TRACK_FOLLOW_UP
+            track = validate_claude_enum(
+                raw, _VALID_TRACKS, "track", config.TRACK_FOLLOW_UP, logger, a.account_id
+            )
+            track_found = True
         elif low.startswith("reason:"):
             reason = s.split(":", 1)[1].strip()
         elif low.startswith("next_step:"):
             next_step = s.split(":", 1)[1].strip()
+
+    if not track_found:
+        logger.warning(
+            f"{a.account_id}: Claude routing response did not contain a TRACK: line. "
+            f"Defaulting to Follow-up. Raw (first 200): {response[:200]!r}"
+        )
 
     return track, reason or response[:200], next_step
 
@@ -122,6 +128,7 @@ def route_all(
     contexts: list[AccountContext],
     priority_results: list[PriorityResult],
 ) -> list[RoutingDecision]:
+    stats = StageStats("07_router")
     priority_map = {p.account_id: p for p in priority_results}
     decisions = []
 
@@ -132,17 +139,30 @@ def route_all(
         if result:
             track, reason = result
             next_step = _default_next_step(track, ctx)
-            logger.info(f"{ctx.account_id}: rule → {track}")
+            logger.info(f"{ctx.account_id} ({ctx.account_name}): rule → {track}")
         else:
             try:
                 track, reason, next_step = claude_route(ctx, priority)
-                logger.info(f"{ctx.account_id}: Claude → {track}")
+                logger.info(f"{ctx.account_id} ({ctx.account_name}): Claude → {track}")
             except Exception as e:
-                logger.error(f"Routing failed for {ctx.account_id}: {e}. Defaulting to Follow-up.")
+                logger.error(
+                    f"Routing failed for {ctx.account_id}: {e}. Defaulting to Follow-up."
+                )
                 track = config.TRACK_FOLLOW_UP
                 reason = f"Routing error: {e}"
                 next_step = "Manual review required."
+                stats.fail(ctx.account_id, str(e))
+                decisions.append(RoutingDecision(
+                    account_id=ctx.account_id,
+                    account_name=ctx.account_name,
+                    track=track,
+                    reason=reason,
+                    owner=ctx.account.csm_owner,
+                    next_step=next_step,
+                ))
+                continue
 
+        stats.ok()
         decisions.append(RoutingDecision(
             account_id=ctx.account_id,
             account_name=ctx.account_name,
@@ -164,7 +184,16 @@ def route_all(
         for d in decisions
     ]
     save_csv_from_dicts(rows, "routing_decisions.csv")
-    logger.info(f"Routed {len(decisions)} accounts. Saved routing_decisions.csv.")
+    stats.summary(logger)
+
+    track_counts = {}
+    for d in decisions:
+        track_counts[d.track] = track_counts.get(d.track, 0) + 1
+    logger.info(
+        f"Routed {len(decisions)} accounts: "
+        + " | ".join(f"{t}={n}" for t, n in sorted(track_counts.items()))
+        + ". Saved routing_decisions.csv."
+    )
     return decisions
 
 
@@ -174,3 +203,21 @@ def _default_next_step(track: str, ctx: AccountContext) -> str:
     if track == config.TRACK_FOLLOW_UP:
         return ctx.call_note.follow_up_items if ctx.call_note else "Schedule follow-up call."
     return "Close open tickets and confirm no further action needed."
+
+
+if __name__ == "__main__":
+    import importlib
+    _s1 = importlib.import_module("pipeline.01_account_review")
+    _s2 = importlib.import_module("pipeline.02_prioritization")
+    # Shadow the module-level call_claude so the mock takes effect in this module's namespace
+    call_claude = lambda *a, **kw: (  # noqa: E731
+        "TRACK: Follow-up\n"
+        "REASON: Account has pending deliverables.\n"
+        "NEXT_STEP: Send follow-up email within 48 hours."
+    )
+    contexts, _ = _s1.build_account_contexts()
+    priorities = _s2.prioritize(contexts)
+    decisions = route_all(contexts, priorities)
+    for t in [config.TRACK_ESCALATE, config.TRACK_FOLLOW_UP, config.TRACK_RESOLVE]:
+        n = sum(1 for d in decisions if d.track == t)
+        print(f"  {t}: {n}")

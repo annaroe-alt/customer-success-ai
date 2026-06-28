@@ -11,20 +11,38 @@ import anthropic
 import config
 
 
+# Pricing per million tokens (USD)
+_COST_PER_M: dict[str, dict[str, float]] = {
+    "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
+    "claude-haiku-4-5-20251001": {"input": 1.00, "output": 5.00},
+    "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
+    "claude-opus-4-8": {"input": 5.00, "output": 25.00},
+    "claude-opus-4-6": {"input": 5.00, "output": 25.00},
+}
+_DEFAULT_COST = {"input": 3.00, "output": 15.00}
+
+
+def _model_cost(model: str, input_tokens: int, output_tokens: int) -> float:
+    rates = _COST_PER_M.get(model, _DEFAULT_COST)
+    return (input_tokens * rates["input"] + output_tokens * rates["output"]) / 1_000_000
+
+
 @dataclass
 class _TokenUsage:
     input_tokens: int = 0
     output_tokens: int = 0
     calls: int = 0
+    cost_usd: float = 0.0
 
     @property
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
 
-    def add(self, inp: int, out: int) -> None:
+    def add(self, inp: int, out: int, model: str = "") -> None:
         self.input_tokens += inp
         self.output_tokens += out
         self.calls += 1
+        self.cost_usd += _model_cost(model, inp, out)
 
 
 # Global token tracker — accumulated across the full pipeline run
@@ -105,7 +123,7 @@ def call_claude(
             time.sleep(delay)
         try:
             response = client.messages.create(**kwargs)
-            TOKEN_USAGE.add(response.usage.input_tokens, response.usage.output_tokens)
+            TOKEN_USAGE.add(response.usage.input_tokens, response.usage.output_tokens, kwargs["model"])
             return response.content[0].text.strip()
         except _RETRYABLE as e:
             last_exc = e

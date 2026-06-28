@@ -160,11 +160,12 @@ def run_pipeline(auto_approve: bool = False) -> None:
     logger.info(f"  Outputs saved to:      {config.OUTPUTS_DIR}/")
     logger.info(f"  Log file:              {config.LOGS_DIR}/pipeline.log")
     logger.info("")
-    logger.info("--- TOKEN USAGE ---")
+    logger.info("--- TOKEN USAGE & COST ---")
     logger.info(f"  Claude API calls:      {TOKEN_USAGE.calls}")
     logger.info(f"  Input tokens:          {TOKEN_USAGE.input_tokens:,}")
     logger.info(f"  Output tokens:         {TOKEN_USAGE.output_tokens:,}")
     logger.info(f"  Total tokens:          {TOKEN_USAGE.total_tokens:,}")
+    logger.info(f"  Estimated cost:        ${TOKEN_USAGE.cost_usd:.4f}")
     haiku_stages_note = "Stages 2/3/7 use claude-haiku-4-5; stages 4/5/6 use claude-sonnet-4-6"
     logger.info(f"  Model note:            {haiku_stages_note}")
     logger.info("")
